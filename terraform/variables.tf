@@ -21,24 +21,33 @@ variable "github_org" {
 }
 
 variable "github_repo" {
-  type    = string
-  default = "cloudfront-waf-cicd"
+  description = "GitHub 仓库完整路径 (owner/repo)"
+  type        = string
+  default     = "HaoChen688/cloudfront-waf-cicd"
 }
 
 variable "github_owner_id" {
+  description = "GitHub 用户或组织的数字 ID"
   type        = string
-  default     = "42665530" # public 仓库必须带 owner id
-  description = "GitHub owner numeric ID"
+  default     = "42665530" # 替换为你的实际 ID
 }
 
 variable "github_repo_id" {
+  description = "GitHub 仓库的数字 ID"
   type        = string
-  default     = "1435386396" # public 仓库必须带 repo id
-  description = "GitHub repo numeric ID"
+  default     = "1435386396" # 替换为你的实际 ID
+}
+
+variable "github_environment" {
+  description = "GitHub Actions 环境名称"
+  type        = string
+  default     = "production"
 }
 
 variable "github_branch" {
-  default = "main"
+  description = "允许部署的分支"
+  type        = string
+  default     = "main"
 }
 
 variable "alarm_email" {

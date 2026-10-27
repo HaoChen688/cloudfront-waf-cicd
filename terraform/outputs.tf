@@ -19,5 +19,5 @@ output "waf_acl_arn" {
 }
 
 output "gh_actions_role_arn" {
-  value = aws_iam_role.gh_actions.arn
+  value = aws_iam_role.cf-waf-cicd-prod-gh-actions.arn
 }
