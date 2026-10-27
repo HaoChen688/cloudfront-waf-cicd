@@ -28,8 +28,25 @@ data "aws_iam_policy_document" "gh_trust" {
 }
 
 resource "aws_iam_role" "gh_actions" {
-  name               = "${var.project}-${var.environment}-gh-actions"
-  assume_role_policy = data.aws_iam_policy_document.gh_trust.json
+  name = "cf-waf-cicd-prod-gh-actions"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          # public 仓库的 sub 带 @id，必须精确匹配
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}@${var.github_owner_id}/${var.github_repo}@${var.github_repo_id}:environment:production"
+        }
+      }
+    }]
+  })
 }
 
 data "aws_iam_policy_document" "gh_perms" {

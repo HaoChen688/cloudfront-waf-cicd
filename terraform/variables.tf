@@ -15,9 +15,26 @@ variable "domain_name" {
   default     = "mymywebsite.click"
 }
 
+variable "github_org" {
+  type    = string
+  default = "HaoChen688"
+}
+
 variable "github_repo" {
-  description = "owner/repo，用于 OIDC 信任"
-  default     = "your-org/your-repo"
+  type    = string
+  default = "cloudfront-waf-cicd"
+}
+
+variable "github_owner_id" {
+  type        = string
+  default     = "42665530" # public 仓库必须带 owner id
+  description = "GitHub owner numeric ID"
+}
+
+variable "github_repo_id" {
+  type        = string
+  default     = "1435386396" # public 仓库必须带 repo id
+  description = "GitHub repo numeric ID"
 }
 
 variable "github_branch" {
