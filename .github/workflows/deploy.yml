@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Debug OIDC token
+      - name: Debug OIDC token  
         run: |
           TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')

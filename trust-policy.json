@@ -13,7 +13,7 @@
         },
         "StringLike": {
           "token.actions.githubusercontent.com:sub": [
-            "repo:HaoChen688/cloudfront-waf-cicd:environment:production"
+            "repo:HaoChen688@42665530/cloudfront-waf-cicd@1435386396:environment:production"
          ]
         }
       }
