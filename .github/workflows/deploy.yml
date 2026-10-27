@@ -1,0 +1,85 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.9.5
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve -input=false
+
+      - name: Sync site to S3
+        run: |
+          BUCKET=$(cd terraform && terraform output -raw bucket_name)
+          # 长缓存：带 hash 的静态资源
+          if [ -d site/assets ]; then
+            aws s3 sync site/assets s3://$BUCKET/assets/ \
+              --cache-control "public, max-age=31536000, immutable" \
+              --delete
+          fi
+          # 短缓存：HTML
+          aws s3 sync site s3://$BUCKET/ \
+            --exclude "assets/*" \
+            --cache-control "public, max-age=300, must-revalidate" \
+            --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          DIST_ID=$(cd terraform && terraform output -raw distribution_id)
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id $DIST_ID --paths "/*" \
+            --query 'Invalidation.Id' --output text)
+          echo "Invalidation: $INVALIDATION_ID"
+          aws cloudfront wait invalidation-completed \
+            --distribution-id $DIST_ID --id $INVALIDATION_ID
+
+      - name: Smoke test
+        run: |
+          URL=$(cd terraform && terraform output -raw site_url)
+          echo "Testing $URL"
+          for i in $(seq 1 10); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+            echo "attempt $i: HTTP $CODE"
+            if [ "$CODE" = "200" ]; then
+              echo "✅ Smoke test passed"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "❌ Smoke test failed"
+          exit 1
