@@ -42,7 +42,7 @@ resource "aws_iam_role" "gh_actions" {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           # public 仓库的 sub 带 @id，必须精确匹配
-          "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}@${var.github_owner_id}/${var.github_repo}@${var.github_repo_id}:environment:production"
+          "token.actions.githubusercontent.com:sub" = ""token.actions.githubusercontent.com:sub": "repo:HaoChen688@42665530/cloudfront-waf-cicd@1435386396:environment:production""
         }
       }
     }]
